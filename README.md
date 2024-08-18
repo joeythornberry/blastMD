@@ -5,7 +5,7 @@ BlastMD (pronounced "blast'em")  is a command-line tool that compiles Markdown f
 
 ## Installation
 
-In the [Releases](https://github.com/joeythornberry/blastMD/releases) tab, you can find "starter sets" that contain the blastMD executable, as well as some default HTML templates to help you get started quickly. Download and unzip the starter set, and you can run ./blastmd from inside it!
+In the [Releases](https://github.com/joeythornberry/blastMD/releases) tab, you can find "starter sets" that contain the blastMD executable, as well as some default HTML templates to help you get started quickly. Download and unzip the starter set, and you can run BlastMD from inside it!
 
 ## Usage
 
