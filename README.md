@@ -28,7 +28,7 @@ Here's how BlastMD expects your blog directory to be set up:
 
 Essentially, BlastMD takes your Markdown files from the `md/` directory, compiles them to HTML and combines them with your template files in the `templates/` directory, and then writes the output to the `blog/` directory.
 
-Additionally, you can add metadata information like titles, authors, and descriptions to the start of your markdown files. BlastMD will extract that metadata and insert it into your templates as needed, i.e., you start you .md file with "Title: My Post", and BlastMD will insert "My Post" into your template files wherever it sees "~Title~". Use the tilde character (~) to surround words that you want to replace.
+Additionally, you can add metadata information like titles, authors, and descriptions to the start of your markdown files. BlastMD will extract that metadata and insert it into your templates as needed, i.e., you start you .md file with "Title: My Post", and BlastMD will insert "My Post" into your template files wherever it sees "\~Title\~". Use the tilde character (~) to surround words that you want to replace.
 
 All posts must provide the same kinds of metadata, as defined in the post.schema file. I.e., if your post.schema has "Image" in it, but your post doesn't define what image it wants, BlastMD will throw an exception.
 
