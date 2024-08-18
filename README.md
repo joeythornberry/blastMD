@@ -34,6 +34,6 @@ All posts must provide the same kinds of metadata, as defined in the post.schema
 
 ## Serving the generated files
 
-BlastMD is designed so that the `blog/` directory can be served directly by a static server such as Nginx.
+BlastMD is designed so that the `blog/` directory can be served directly by a static server such as Nginx. You can put your images and CSS in the `blog/` directory as well - BlastMD won't touch them.
 
-Also, if you use relative imports for external files like images and CSS, you'll be able to preview/test the fully-rendered site, exactly as it will appear online, with only your browser's built-in file viewer - no localhost needed!
+Also, if you use relative imports for images and CSS, you'll be able to preview/test the fully-rendered site, exactly as it will appear online, with only your browser's built-in file viewer - no localhost needed!
