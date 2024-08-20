@@ -1,4 +1,4 @@
-# BlastMD
+![BlastMD](blastmd.png)
 ### Simple, SEO-aware static Markdown blog generator
 
 BlastMD (pronounced "blast'em")  is a command-line tool that compiles Markdown files into HTML files, while also giving the user control of HTML tags that are important for SEO, like meta-descriptions and schema.
