@@ -9,6 +9,7 @@ import Control.Monad
 -- | The three templates we need to create an HTML file
 data LoadedTemplates = Templates String String String
 
+-- | Get paths to all files in the given directory or its descendants
 listDirectoryRecursive :: FilePath -> IO [FilePath]
 listDirectoryRecursive path =
   do
@@ -21,12 +22,14 @@ listDirectoryRecursive path =
       nested <- mapM listDirectoryRecursive relativepaths
       return $ concat nested
 
+-- | Generate an upwards relative path: goUpLevels 2 = ../../
 goUpLevels :: FilePath -> Int -> FilePath
 goUpLevels path numlevels =
   if numlevels == 0
     then path
     else goUpLevels path (numlevels - 1) ++ "../"
 
+-- | Generate an upwards relative path to the home directory: getRelativeHomePath "blog/foo/bar.md" = "../"
 getRelativeHomePath :: FilePath -> FilePath
 getRelativeHomePath input =
   let depth = length (splitPath $ takeDirectory input) - 1
