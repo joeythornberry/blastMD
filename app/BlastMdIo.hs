@@ -1,13 +1,36 @@
 module BlastMdIo where
 
-import System.Directory (doesFileExist, doesDirectoryExist, listDirectory, getCurrentDirectory, createDirectory)
-import System.FilePath ((</>), replaceExtension)
+import System.Directory (doesFileExist, doesDirectoryExist, listDirectory, getCurrentDirectory, createDirectory, createDirectoryIfMissing)
+import System.FilePath ((</>), replaceExtension, dropFileName, takeFileName, takeDirectory, splitPath, joinPath)
 import System.Exit
 import Compilation (compileHtml)
 import Control.Monad
 
 -- | The three templates we need to create an HTML file
 data LoadedTemplates = Templates String String String
+
+listDirectoryRecursive :: FilePath -> IO [FilePath]
+listDirectoryRecursive path =
+  do
+    isfile <- doesFileExist path
+    if isfile then
+      return [path]
+    else do
+      paths <- listDirectory path
+      let relativepaths = map (path </>) paths
+      nested <- mapM listDirectoryRecursive relativepaths
+      return $ concat nested
+
+goUpLevels :: FilePath -> Int -> FilePath
+goUpLevels path numlevels =
+  if numlevels == 0
+    then path
+    else goUpLevels path (numlevels - 1) ++ "../"
+
+getRelativeHomePath :: FilePath -> FilePath
+getRelativeHomePath input =
+  let depth = length (splitPath $ takeDirectory input) - 1
+  in goUpLevels "" depth
 
 -- | Load the three template files we need
 loadTemplates :: IO LoadedTemplates
@@ -59,14 +82,17 @@ ensureOutDirectory =
 
 -- | Compile a md file to a server-ready HTML file
 compileMd :: [String] -> LoadedTemplates -> String -> IO (Either String ())
-compileMd metadatas (Templates headtemplate toptemplate bottomtemplate) filename =
+compileMd metadatas (Templates headtemplate toptemplate bottomtemplate) path =
   do 
-    post <- readFile ("md" </> filename)
+    post <- readFile path
     case compileHtml metadatas headtemplate toptemplate post bottomtemplate of
-      Right htmlcontent -> do
-        writeFile ("blog" </> replaceExtension filename "html") htmlcontent
-        return $ Right ()
-      Left errormsg -> return $ Left $ filename ++ ": " ++ errormsg
+      Right htmlcontent ->
+        let htmldirpath = "blog" </> joinPath (tail $ splitPath $ dropFileName path)
+        in do
+          createDirectoryIfMissing True htmldirpath
+          writeFile (htmldirpath </> replaceExtension (takeFileName path) "html") htmlcontent
+          return $ Right ()
+      Left errormsg -> return $ Left $ path ++ ": " ++ errormsg
 
 -- | Load the post.schema file into the metadata list
 loadPostSchema :: IO [String]
@@ -75,6 +101,7 @@ loadPostSchema =
     schemacontent <- readFile "post.schema"
     return [head w | w <- [words l | l <- lines schemacontent]]
 
+-- | Ensure that all needed schema files, directories, and templates are present
 checkStructureOk :: IO (Either String ())
 checkStructureOk = 
   do
@@ -92,7 +119,7 @@ compileAllMd :: IO ()
 compileAllMd = do
   metadatas <- loadPostSchema
   loadedtemplates <- loadTemplates
-  files <- listDirectory "md"
+  files <- listDirectoryRecursive "md"
   result <- foldM (\acc x -> case acc of
                       Left errormsg -> return $ Left errormsg
                       Right () -> compileMd metadatas loadedtemplates x

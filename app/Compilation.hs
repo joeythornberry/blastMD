@@ -41,6 +41,8 @@ insertSafe _ (Left _) _ =
 -- | Extract a map of metadata keys to values from a post
 extractMetadataMap :: [String] -> Either String (Map.Map String String) -> [String] -> Either String (Map.Map String String)
 extractMetadataMap _ (Left errormsg) _ = Left errormsg
+extractMetadataMap [] m _ = m
+extractMetadataMap _ _ [] = Left "FATAL: No metadata found! Did you forget to add metadata at the top of your post, as shown in your post.schema file? You must define at least one metadatum."
 extractMetadataMap mets (Right metadatamap) pairs =
   let met = head mets
       pair = head pairs
@@ -69,7 +71,7 @@ processAllTemplates mapdata =
 -- | Extract post metadata, perform template processing, compile markdown, and combine resulting strings into the final HTML string.
 compileHtml :: [String] -> String -> String -> String -> String -> Either String String
 compileHtml metadatas headtemplate toptemplate post bottomtemplate =
-  let metadatamap = extractMetadataMap metadatas (Right Map.empty) (lines post)
+  let metadatamap = extractMetadataMap metadatas (Right $ Map.fromList [("_Base", "../../../")]) (lines post)
       content = markdownToHtml $ unlines $ drop (length metadatas) (lines post)
   in case metadatamap of 
     Right mapdata -> 
