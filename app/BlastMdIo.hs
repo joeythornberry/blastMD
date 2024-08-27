@@ -1,5 +1,6 @@
 module BlastMdIo where
 
+import qualified Data.Map as Map
 import System.Directory (doesFileExist, doesDirectoryExist, listDirectory, getCurrentDirectory, createDirectory, createDirectoryIfMissing)
 import System.FilePath ((</>), replaceExtension, dropFileName, takeFileName, takeDirectory, splitPath, joinPath)
 import System.Exit
@@ -86,9 +87,12 @@ ensureOutDirectory =
 -- | Compile a md file to a server-ready HTML file
 compileMd :: [String] -> LoadedTemplates -> String -> IO (Either String ())
 compileMd metadatas (Templates headtemplate toptemplate bottomtemplate) path =
-  do 
+  let 
+    homepath = getRelativeHomePath path
+    builtinmaps = Map.fromList [("_Home", homepath), ("_Path", path)]
+  in do 
     post <- readFile path
-    case compileHtml metadatas headtemplate toptemplate post bottomtemplate of
+    case compileHtml metadatas headtemplate toptemplate post bottomtemplate builtinmaps of
       Right htmlcontent ->
         let htmldirpath = "blog" </> joinPath (tail $ splitPath $ dropFileName path)
         in do

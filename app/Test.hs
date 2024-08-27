@@ -83,7 +83,7 @@ tcompileHtml :: Test
 tcompileHtml =
   let expectedHtml = "<!DOCTYPE html>\n<html>\n<head>\nhec1ad</head>\n<body>\ntop<article>\n<p>content</p>\n</article>\nbottomc1</body>\n</html>" in
   TestCase $ do
-    assertEqual "successful" (compileHtml ["m1"] "he~m1~ad" "top" "m1: c1\ncontent" "bottom~m1~") $ Right expectedHtml
+    assertEqual "successful" (compileHtml ["m1"] "he~m1~ad" "top" "m1: c1\ncontent" "bottom~m1~" Map.empty) $ Right expectedHtml
 
 tests :: Test
 tests = TestList [

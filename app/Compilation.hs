@@ -69,9 +69,9 @@ processAllTemplates mapdata =
   ) (Right [])
 
 -- | Extract post metadata, perform template processing, compile markdown, and combine resulting strings into the final HTML string.
-compileHtml :: [String] -> String -> String -> String -> String -> Either String String
-compileHtml metadatas headtemplate toptemplate post bottomtemplate =
-  let metadatamap = extractMetadataMap metadatas (Right $ Map.fromList [("_Base", "../../../")]) (lines post)
+compileHtml :: [String] -> String -> String -> String -> String -> Map.Map String String -> Either String String
+compileHtml metadatas headtemplate toptemplate post bottomtemplate startingmap =
+  let metadatamap = extractMetadataMap metadatas (Right startingmap) (lines post)
       content = markdownToHtml $ unlines $ drop (length metadatas) (lines post)
   in case metadatamap of 
     Right mapdata -> 
