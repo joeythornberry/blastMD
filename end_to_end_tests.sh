@@ -70,7 +70,7 @@ isEmpty $(ls blog) || failTest
 cp md/p1.md md/p2.md
 
 echo Blasting with a corrected second .md file...
-./blastmd >/dev/null 2>/dev/null || failTest
+./blastmd 2>/dev/null || failTest
 
 rm templates/head.html
 echo Blasting with missing template file, expect failure...

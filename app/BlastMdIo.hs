@@ -5,6 +5,7 @@ import System.Directory (doesFileExist, doesDirectoryExist, listDirectory, getCu
 import System.FilePath ((</>), replaceExtension, dropFileName, takeFileName, takeDirectory, splitPath, joinPath)
 import System.Exit
 import Compilation (compileHtml)
+import Json (jsonifyMap)
 import Control.Monad
 
 -- | The three templates we need to create an HTML file
@@ -91,6 +92,7 @@ compileMd metadatas (Templates headtemplate toptemplate bottomtemplate) path =
     homepath = getRelativeHomePath path
     builtinmaps = Map.fromList [("_Home", homepath), ("_Path", path)]
   in do 
+    putStrLn $ jsonifyMap builtinmaps
     post <- readFile path
     case compileHtml metadatas headtemplate toptemplate post bottomtemplate builtinmaps of
       Right htmlcontent ->
