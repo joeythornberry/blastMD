@@ -2,7 +2,7 @@ module BlastMdIo where
 
 import qualified Data.Map as Map
 import System.Directory (doesFileExist, doesDirectoryExist, listDirectory, getCurrentDirectory, createDirectory, createDirectoryIfMissing)
-import System.FilePath ((</>), replaceExtension, dropFileName, takeFileName, takeDirectory, splitPath, joinPath)
+import System.FilePath ((</>), replaceExtension, dropFileName, takeFileName, takeDirectory, splitPath, joinPath, takeExtension)
 import System.Exit
 import Compilation (compileHtml, HtmlCompilationResult(SuccessfulHtmlCompilation) )
 import Json (wrapJsonPostsData)
@@ -90,7 +90,10 @@ compileMd :: [String] -> LoadedTemplates -> String -> IO (Either String String)
 compileMd metadatas (Templates headtemplate toptemplate bottomtemplate) path =
   let 
     homepath = getRelativeHomePath path
-    builtinmaps = Map.fromList [("_Home", homepath), ("_Path", path)]
+    ismd = takeExtension path == ".md"
+    beginmdonly = if ismd then "" else "<!--"
+    endmdonly = if ismd then "" else "-->"
+    builtinmaps = Map.fromList [("_Home", homepath), ("_Path", path), ("_BeginMdOnly", beginmdonly), ("_EndMdOnly", endmdonly)]
   in do 
     post <- readFile path
     case compileHtml metadatas headtemplate toptemplate post bottomtemplate builtinmaps of
