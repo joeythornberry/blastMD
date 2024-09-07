@@ -2,7 +2,7 @@ import Test.HUnit
 import qualified System.Exit as Exit
 import qualified Data.Map as Map
 import Templating (replaceAfterBeginChar, swapBetweenDelimiters, swapWithMap, processTemplate)
-import Compilation (readKey, extractParameter, insertSafe, extractMetadataMap, markdownToHtml, processAllTemplates, compileHtml)
+import Compilation (readKey, extractParameter, insertSafe, extractMetadataMap, markdownToHtml, processAllTemplates, compileHtml, HtmlCompilationResult (SuccessfulHtmlCompilation))
 
 assertLeft :: (Show a, Show b) => Either a b -> Assertion
 assertLeft (Left _) = return ()
@@ -83,7 +83,9 @@ tcompileHtml :: Test
 tcompileHtml =
   let expectedHtml = "<!DOCTYPE html>\n<html>\n<head>\nhec1ad</head>\n<body>\ntop<article>\n<p>content</p>\n</article>\nbottomc1</body>\n</html>" in
   TestCase $ do
-    assertEqual "successful" (compileHtml ["m1"] "he~m1~ad" "top" "m1: c1\ncontent" "bottom~m1~" Map.empty) $ Right expectedHtml
+    case compileHtml ["m1"] "he~m1~ad" "top" "m1: c1\ncontent" "bottom~m1~" Map.empty of
+      Right (SuccessfulHtmlCompilation htmlcontent metadatajson) -> assertEqual "Html content is correct" htmlcontent  expectedHtml
+      Left errormsg -> assertFailure errormsg
 
 tests :: Test
 tests = TestList [

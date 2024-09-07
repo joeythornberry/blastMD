@@ -6,6 +6,8 @@ import qualified Data.Map as Map
 import Text.Markdown (markdown, def, msXssProtect)
 import Text.Blaze.Html.Renderer.Text(renderHtml)
 import qualified Data.Text.Lazy as Text
+import Text.Blaze.Html (Html)
+import Json (jsonifyMap)
 
 -- | Read and verify the key from a String of format "Key: Value" 
 readKey :: Maybe String -> Either String String
@@ -68,15 +70,17 @@ processAllTemplates mapdata =
         Left errormsg -> Left $ templatename ++ ": " ++ errormsg
   ) (Right [])
 
+data HtmlCompilationResult = SuccessfulHtmlCompilation String String
+
 -- | Extract post metadata, perform template processing, compile markdown, and combine resulting strings into the final HTML string.
-compileHtml :: [String] -> String -> String -> String -> String -> Map.Map String String -> Either String String
+compileHtml :: [String] -> String -> String -> String -> String -> Map.Map String String -> Either String HtmlCompilationResult
 compileHtml metadatas headtemplate toptemplate post bottomtemplate startingmap =
   let metadatamap = extractMetadataMap metadatas (Right startingmap) (lines post)
       content = markdownToHtml $ unlines $ drop (length metadatas) (lines post)
   in case metadatamap of 
     Right mapdata -> 
       case processAllTemplates mapdata [("head.html", headtemplate), ("top.html", toptemplate), ("bottom.html", bottomtemplate)] of
-        Right (htmlhead:htmltop:htmlbottom:_) -> Right $ "<!DOCTYPE html>\n<html>\n" ++ "<head>\n" ++ htmlhead ++ "</head>\n<body>\n" ++ htmltop ++ "<article>\n" ++ content ++ "\n</article>\n" ++ htmlbottom ++ "</body>\n" ++ "</html>"
+        Right (htmlhead:htmltop:htmlbottom:_) -> Right $ SuccessfulHtmlCompilation ("<!DOCTYPE html>\n<html>\n" ++ "<head>\n" ++ htmlhead ++ "</head>\n<body>\n" ++ htmltop ++ "<article>\n" ++ content ++ "\n</article>\n" ++ htmlbottom ++ "</body>\n" ++ "</html>") (jsonifyMap mapdata)
         Right templates -> Left $ "FATAL: got " ++ show (length templates) ++ " processed templates, but expected 3. This should never happen."
         Left errormsg -> Left errormsg
     Left errormsg -> Left errormsg

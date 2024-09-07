@@ -4,8 +4,8 @@ import qualified Data.Map as Map
 import System.Directory (doesFileExist, doesDirectoryExist, listDirectory, getCurrentDirectory, createDirectory, createDirectoryIfMissing)
 import System.FilePath ((</>), replaceExtension, dropFileName, takeFileName, takeDirectory, splitPath, joinPath)
 import System.Exit
-import Compilation (compileHtml)
-import Json (jsonifyMap)
+import Compilation (compileHtml, HtmlCompilationResult(SuccessfulHtmlCompilation) )
+import Json (wrapJsonPostsData)
 import Control.Monad
 
 -- | The three templates we need to create an HTML file
@@ -68,7 +68,7 @@ neededDirectoriesFoldFunction acc x =
       Right () -> do
         xexists <- doesDirectoryExist x
         if xexists then return (Right ())
-          else return $ Left $ "FATAL: No " ++ x ++ "/ directory found. Are you sure you're running TisSad in the right directory?"
+          else return $ Left $ "FATAL: No " ++ x ++ "/ directory found. Are you sure you're running blastMD in the right directory?"
 
 -- | Check if all needed directories are present
 checkDirectoryStructure :: IO (Either String ())
@@ -86,21 +86,20 @@ ensureOutDirectory =
       putStrLn "Created blog/ directory to house generated HTML files."
 
 -- | Compile a md file to a server-ready HTML file
-compileMd :: [String] -> LoadedTemplates -> String -> IO (Either String ())
+compileMd :: [String] -> LoadedTemplates -> String -> IO (Either String String)
 compileMd metadatas (Templates headtemplate toptemplate bottomtemplate) path =
   let 
     homepath = getRelativeHomePath path
     builtinmaps = Map.fromList [("_Home", homepath), ("_Path", path)]
   in do 
-    putStrLn $ jsonifyMap builtinmaps
     post <- readFile path
     case compileHtml metadatas headtemplate toptemplate post bottomtemplate builtinmaps of
-      Right htmlcontent ->
+      Right (SuccessfulHtmlCompilation htmlcontent metadatajson) ->
         let htmldirpath = "blog" </> joinPath (tail $ splitPath $ dropFileName path)
         in do
           createDirectoryIfMissing True htmldirpath
           writeFile (htmldirpath </> replaceExtension (takeFileName path) "html") htmlcontent
-          return $ Right ()
+          return $ Right metadatajson
       Left errormsg -> return $ Left $ path ++ ": " ++ errormsg
 
 -- | Load the post.schema file into the metadata list
@@ -124,18 +123,26 @@ checkStructureOk =
            Right () -> checkTemplatesPresent
 
 -- | Compile all md files in the md/ directory to server-ready HTML files
-compileAllMd :: IO ()
+compileAllMd :: IO String
 compileAllMd = do
   metadatas <- loadPostSchema
   loadedtemplates <- loadTemplates
   files <- listDirectoryRecursive "md"
   result <- foldM (\acc x -> case acc of
                       Left errormsg -> return $ Left errormsg
-                      Right () -> compileMd metadatas loadedtemplates x
-                      ) (Right ()) files
+                      Right metadatalist -> do
+                        compilationresult <- compileMd metadatas loadedtemplates x
+                        case compilationresult of 
+                            Right metadatajson ->
+                              return $ Right (metadatalist ++ metadatajson ++ ",\n")
+                            Left errormsg -> return $ Left errormsg
+                      ) (Right []) files
   case result of
     Left errormsg -> die errormsg
-    Right () -> return ()
+    Right metadatalist -> return metadatalist
+
+savePostsDotJson :: String -> IO ()
+savePostsDotJson =  writeFile $ "blog" </> "allposts.json"
 
 -- | Check that all needed directories and files are present, and then compile the blog
 compileBlog :: IO ()
@@ -145,4 +152,6 @@ compileBlog =
       structureok <- checkStructureOk
       case structureok of
         Left errormsg -> die errormsg
-        Right () -> compileAllMd
+        Right () -> do
+          metadatalist <- compileAllMd
+          savePostsDotJson $ wrapJsonPostsData metadatalist
