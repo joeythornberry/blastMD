@@ -49,6 +49,12 @@ echo content line 2 >> md/p1.md
 echo Blasting with a valid .md file, expect success...
 ./blastmd >/dev/null 2>/dev/null || failTest
 
+echo Checking that sitemap.txt was NOT created without url...
+isEmpty $( ls blog | grep sitemap.txt ) || failTest
+
+echo Checking that allposts.js was created...
+isEmpty $( ls blog | grep allposts.js ) && failTest
+
 echo Checking that blog/p1.html was created...
 isEmpty $( ls blog | grep p1.html) && failTest
 
@@ -68,10 +74,22 @@ echo Checking that no .html files made it through...
 isEmpty $(ls blog) || failTest
 
 cp md/p1.md md/p2.md
+mkdir md/boo
+cp md/p1.md md/boo/pooo2.md
 
-echo Blasting with a corrected second .md file...
+echo index > md/index.html
+echo https://actual_url.bar/ > base.url
+echo Blasting with a corrected second .md file and url...
 ./blastmd >/dev/null 2>/dev/null || failTest
-cat blog/allposts.json
+
+echo Checking that sitemap.txt was created...
+isEmpty $( ls blog | grep sitemap.txt ) && failTest
+
+echo Checking that sitemap.txt has the correct content...
+isEmpty $( cat blog/sitemap.txt | grep https://actual_url.bar/boo/pooo2.html ) && failTest && cat blog/sitemap.txt
+
+echo Checking that allposts.js has the correct number of posts...
+test $(cat blog/allposts.js | grep _Date | wc -l) -eq 3 || failTest
 
 rm templates/head.html
 echo Blasting with missing template file, expect failure...

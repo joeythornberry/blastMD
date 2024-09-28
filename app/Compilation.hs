@@ -6,7 +6,6 @@ import qualified Data.Map as Map
 import Text.Markdown (markdown, def, msXssProtect)
 import Text.Blaze.Html.Renderer.Text(renderHtml)
 import qualified Data.Text.Lazy as Text
-import Text.Blaze.Html (Html)
 import Json (jsonifyMap)
 
 -- | Read and verify the key from a String of format "Key: Value" 

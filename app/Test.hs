@@ -3,10 +3,36 @@ import qualified System.Exit as Exit
 import qualified Data.Map as Map
 import Templating (replaceAfterBeginChar, swapBetweenDelimiters, swapWithMap, processTemplate)
 import Compilation (readKey, extractParameter, insertSafe, extractMetadataMap, markdownToHtml, processAllTemplates, compileHtml, HtmlCompilationResult (SuccessfulHtmlCompilation))
+import Sitemap (createSitemap, processUrl)
+import Json (jsonifyValue, jsonifyMap)
 
 assertLeft :: (Show a, Show b) => Either a b -> Assertion
 assertLeft (Left _) = return ()
 assertLeft x@(Right _) = assertFailure $ show x ++ " is not a Left"
+
+-- JSON.HS
+
+tjsonifyValue :: Test
+tjsonifyValue = TestCase $ 
+  assertEqual "successful" "\"foo\": \"bar\"" (jsonifyValue "foo" "bar") 
+
+tjsonifyMap :: Test
+tjsonifyMap = TestCase $
+  assertEqual "successful" "{\n\"baz\": \"buz\",\"foo\": \"bar\"\n}" (jsonifyMap $ Map.fromList [("foo", "bar"), ("baz", "buz")])
+
+-- SITEMAP.HS
+
+tprocessUrl :: Test
+tprocessUrl = 
+  TestCase $
+    assertEqual "successful" (processUrl "https://foo.bar/" "md/hello/goodbye.txt") "https://foo.bar/hello/goodbye.html"
+
+tcreateSitemap :: Test
+tcreateSitemap = 
+  TestCase $ 
+    assertEqual "successful" (createSitemap "https://foo.bar/" ["md/a/b/c.md", "md/d.md"]) "https://foo.bar/a/b/c.html\nhttps://foo.bar/d.html\n"
+
+-- TEMPLATING.HS
 
 treplaceAfterBeginChar :: Test
 treplaceAfterBeginChar =
@@ -84,7 +110,7 @@ tcompileHtml =
   let expectedHtml = "<!DOCTYPE html>\n<html>\n<head>\nhec1ad</head>\n<body>\ntop<article>\n<p>content</p>\n</article>\nbottomc1</body>\n</html>" in
   TestCase $ do
     case compileHtml ["m1"] "he~m1~ad" "top" "m1: c1\ncontent" "bottom~m1~" Map.empty of
-      Right (SuccessfulHtmlCompilation htmlcontent metadatajson) -> assertEqual "Html content is correct" htmlcontent  expectedHtml
+      Right (SuccessfulHtmlCompilation htmlcontent _) -> assertEqual "Html content is correct" htmlcontent  expectedHtml
       Left errormsg -> assertFailure errormsg
 
 tests :: Test
@@ -99,7 +125,11 @@ tests = TestList [
   TestLabel "extractMetadataMap" textractMetadataMap,
   TestLabel "markdownToHtml" tmarkdownToHtml,
   TestLabel "processAllTemplates" tprocessAllTemplates,
-  TestLabel "compileHtml" tcompileHtml
+  TestLabel "compileHtml" tcompileHtml,
+  TestLabel "processUrl" tprocessUrl,
+  TestLabel "createSitemap" tcreateSitemap,
+  TestLabel "jsonifyValue" tjsonifyValue,
+  TestLabel "jsonifyMap" tjsonifyMap
   ]
 
 main :: IO ()
