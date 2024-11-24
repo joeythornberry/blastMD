@@ -1,14 +1,12 @@
 ![BlastMD](blastmd.png)
-### Simple, SEO-aware static Markdown blog generator
 
+### Simple, SEO-aware static Markdown blog generator
 BlastMD (pronounced "blast'em")  is a command-line tool that compiles Markdown files into HTML files, while also giving the user control of HTML tags that are important for SEO, like meta-descriptions and schema.
 
 ## Installation
-
 In the [Releases](https://github.com/joeythornberry/blastMD/releases) tab, you can find "starter sets" that contain the blastMD executable, as well as some default HTML templates to help you get started quickly. Download and unzip the starter set, and you can run BlastMD from inside it!
 
 ## Usage
-
 Here's how BlastMD expects your blog directory to be set up:
 ```
 |---  md/
@@ -45,7 +43,6 @@ We can then open blog/post.html in our browser, and we have a completed webpage!
 I store my website's `<head>` tag in "templates/head.html", my `<header>` in "templates/top.html", and my `<footer>` in "templates/bottom.html." This way, all of my posts can have the same `<head>`, `<header>` and `<footer>`, without my having to copy~paste each one into each post. Very convenient.
 
 ## Templating Tags
-
 You might ask, "that's all well and good, but what if my different posts need to have slightly different `<head>`s, `<header>`s and `<footer>`s?" Fortunately, I thought of a nice way to achieve that goal.
 
 BlastMD has built-in and user-created "templating tags" that allow us to modify parts of our "head.html," "top.html," and "bottom.html" template files for each different Markdown file.
@@ -111,7 +108,19 @@ and other SEO attributes, without needing to write any HTML for
 each blog post.
 
 ## Serving the generated files
-
 BlastMD is designed so that the `blog/` directory can be served directly by a static server such as Nginx. You can put your images and CSS in the `blog/` directory as well - BlastMD won't touch them.
 
 Also, if you use relative imports for images and CSS, you'll be able to preview/test the fully-rendered site, exactly as it will appear online, with only your browser's built-in file viewer - no localhost needed!
+
+## Creating Post Lists
+Sometimes, we want a page to have a list of other posts. For example,
+we might want our blog's homepage to have a list of recent posts, 
+or we might want each post to have a list of similar posts for further
+reading.
+
+BlastMD, when run, will produce a "blog/allposts.js" file that stores all of
+the built-in and user-created templating tags for each post in a single
+JSON list.
+We can use this to create a post list: we simply use client-side
+JavaScript to fetch "allposts.js" from our server, and use it to create
+an HTML post list, which we inject into the DOM. Very nice.
