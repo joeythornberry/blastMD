@@ -53,12 +53,19 @@ BlastMD has built-in and user-created "templating tags" that allow us to modify 
 ### Built-In Templating Tags
 BlastMD includes some built-in tags with helpful data that you can access from your templates.
 - \_Date
+
     The time of last modification of the .md file
+
 - \_Home 
+
     Relative path to the root address of the website
+
 - \_Url
+
     The relative url of the html file generated from this .md file
+
 - \_BeginMdOnly, \_EndMdOnly
+
     If this markdown file has the .html extension instead of the .md extension, content and markup between these two tage will be ignored.
 
 Inside of one of our template files, we can access these tags by using
